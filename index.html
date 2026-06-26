@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Imposter</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0f0f14;
+      --card: #1a1a24;
+      --card-border: #2a2a3a;
+      --text: #f0f0f5;
+      --text-muted: #8888a0;
+      --accent: #7c5cfc;
+      --accent-hover: #9078ff;
+      --accent-glow: rgba(124, 92, 252, 0.35);
+      --danger: #ff4d6a;
+      --danger-glow: rgba(255, 77, 106, 0.35);
+      --success: #3dd68c;
+      --success-glow: rgba(61, 214, 140, 0.35);
+      --warning: #ffb347;
+      --radius: 16px;
+      --transition: 0.25s ease;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100dvh;
+      padding: 24px 16px;
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(124, 92, 252, 0.12) 0%, transparent 60%),
+        var(--bg);
+    }
+
+    .app {
+      width: 100%;
+      max-width: 420px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Screens */
+    .screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      animation: fadeIn var(--transition);
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50%       { transform: scale(1.03); }
+    }
+
+    /* Header */
+    .logo {
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #fff 30%, var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      text-align: center;
+      margin-bottom: 32px;
+      line-height: 1.5;
+    }
+
+    /* Card */
+    .card {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Form */
+    .field label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+
+    .field input,
+    .field textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 1rem;
+      padding: 14px 16px;
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition);
+      font-family: inherit;
+      resize: vertical;
+    }
+
+    .field input:focus,
+    .field textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .field textarea {
+      min-height: 110px;
+      line-height: 1.5;
+    }
+
+    .field input[type="number"] {
+      font-size: 1.4rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    /* Error */
+    .error {
+      display: none;
+      background: rgba(255, 77, 106, 0.12);
+      border: 1px solid rgba(255, 77, 106, 0.4);
+      color: #ff8099;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    .error.visible {
+      display: block;
+      animation: fadeIn var(--transition);
+    }
+
+    /* Buttons */
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 18px 24px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow var(--transition), background var(--transition);
+      font-family: inherit;
+      letter-spacing: 0.01em;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 4px 20px var(--accent-glow);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--card-border);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--text-muted);
+      color: var(--text);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+      box-shadow: 0 4px 20px var(--danger-glow);
+    }
+
+    .btn-vote {
+      background: var(--bg);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 16px 20px;
+      font-size: 1rem;
+    }
+
+    .btn-vote:hover {
+      border-color: var(--accent);
+      background: rgba(124, 92, 252, 0.1);
+    }
+
+    .btn-vote.selected {
+      border-color: var(--accent);
+      background: rgba(124, 92, 252, 0.2);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+    }
+
+    /* Phase screens */
+    .phase-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .phase-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+
+    .phase-body {
+      color: var(--text-muted);
+      text-align: center;
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+
+    .player-badge {
+      display: inline-block;
+      background: rgba(124, 92, 252, 0.2);
+      color: var(--accent-hover);
+      font-weight: 800;
+      font-size: 1.1rem;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin: 0 2px;
+    }
+
+    /* Role reveal */
+    .role-card {
+      width: 100%;
+      border-radius: var(--radius);
+      padding: 32px 24px;
+      text-align: center;
+      margin-bottom: 24px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .role-card.normal {
+      background: rgba(61, 214, 140, 0.1);
+      border: 1px solid rgba(61, 214, 140, 0.35);
+    }
+
+    .role-card.imposter {
+      background: rgba(255, 77, 106, 0.1);
+      border: 1px solid rgba(255, 77, 106, 0.35);
+    }
+
+    .role-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .role-word {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1.2;
+      color: var(--success);
+    }
+
+    .role-imposter-title {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--danger);
+      letter-spacing: 0.04em;
+      margin-bottom: 8px;
+    }
+
+    .role-imposter-hint {
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    /* Results */
+    .result-banner {
+      width: 100%;
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      text-align: center;
+      margin-bottom: 20px;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .result-banner.win {
+      background: rgba(61, 214, 140, 0.12);
+      border: 1px solid rgba(61, 214, 140, 0.4);
+    }
+
+    .result-banner.lose {
+      background: rgba(255, 77, 106, 0.12);
+      border: 1px solid rgba(255, 77, 106, 0.4);
+    }
+
+    .result-banner.tie {
+      background: rgba(255, 179, 71, 0.12);
+      border: 1px solid rgba(255, 179, 71, 0.4);
+    }
+
+    .result-outcome {
+      font-size: 1.5rem;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .result-banner.win .result-outcome { color: var(--success); }
+    .result-banner.lose .result-outcome { color: var(--danger); }
+    .result-banner.tie .result-outcome { color: var(--warning); }
+
+    .result-detail {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .result-stats {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .result-stats h3 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    .vote-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 0.95rem;
+    }
+
+    .vote-row:last-child {
+      border-bottom: none;
+    }
+
+    .vote-count {
+      font-weight: 700;
+      color: var(--accent-hover);
+    }
+
+    .vote-row.imposter-row {
+      color: var(--danger);
+      font-weight: 600;
+    }
+
+    .progress-dots {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--card-border);
+      transition: background var(--transition), transform var(--transition);
+    }
+
+    .dot.done { background: var(--accent); }
+    .dot.current { background: var(--accent-hover); transform: scale(1.3); }
+
+    .hidden { display: none !important; }
+
+    .spacer { flex: 1; }
+
+    footer {
+      margin-top: 24px;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      text-align: center;
+      opacity: 0.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+
+    <!-- START SCREEN -->
+    <div id="screen-start" class="screen active">
+      <div class="logo">Imposter</div>
+      <p class="subtitle">Pass one phone around.<br>Find the player who doesn't know the word.</p>
+
+      <div class="card">
+        <div class="field">
+          <label for="player-count">Number of Players</label>
+          <input type="number" id="player-count" min="3" max="20" value="4" inputmode="numeric">
+        </div>
+
+        <div class="field">
+          <label for="custom-terms">Custom Terms</label>
+          <textarea id="custom-terms" placeholder="pizza, basketball, Eiffel Tower, Minecraft, Taylor Swift"></textarea>
+        </div>
+
+        <div id="start-error" class="error"></div>
+
+        <button class="btn btn-primary" id="btn-start">Start Game</button>
+      </div>
+    </div>
+
+    <!-- REVEAL SCREEN -->
+    <div id="screen-reveal" class="screen">
+      <div class="progress-dots" id="reveal-dots"></div>
+
+      <!-- Pass phone prompt (role hidden) -->
+      <div id="reveal-pass">
+        <div class="phase-icon">📱</div>
+        <h2 class="phase-title">Pass the phone to<br><span class="player-badge" id="reveal-player-name">Player 1</span></h2>
+        <p class="phase-body">Only this player should look at the screen.</p>
+        <div class="spacer"></div>
+        <button class="btn btn-primary" id="btn-reveal">Reveal</button>
+      </div>
+
+      <!-- Role shown after Reveal -->
+      <div id="reveal-role" class="hidden" style="width:100%">
+        <div id="role-card-normal" class="role-card normal hidden">
+          <div class="role-label">Your word is</div>
+          <div class="role-word" id="role-word"></div>
+        </div>
+        <div id="role-card-imposter" class="role-card imposter hidden">
+          <div class="role-imposter-title">You are the IMPOSTER</div>
+          <div class="role-imposter-hint">Try to blend in.</div>
+        </div>
+        <button class="btn btn-secondary" id="btn-hide">Hide</button>
+      </div>
+    </div>
+
+    <!-- DISCUSSION SCREEN -->
+    <div id="screen-discussion" class="screen">
+      <div class="phase-icon">💬</div>
+      <h2 class="phase-title">Discussion Time</h2>
+      <p class="phase-body">Talk, ask questions, and figure out who the imposter is.</p>
+      <div class="spacer"></div>
+      <button class="btn btn-primary" id="btn-to-vote">Go to Vote</button>
+    </div>
+
+    <!-- VOTING SCREEN -->
+    <div id="screen-vote" class="screen">
+      <div class="progress-dots" id="vote-dots"></div>
+
+      <!-- Pass phone to voter -->
+      <div id="vote-pass">
+        <div class="phase-icon">🗳️</div>
+        <h2 class="phase-title">Pass the phone to<br><span class="player-badge" id="vote-player-name">Player 1</span></h2>
+        <p class="phase-body">This player will cast their vote in secret.</p>
+        <div class="spacer"></div>
+        <button class="btn btn-primary" id="btn-ready-vote">Ready to Vote</button>
+      </div>
+
+      <!-- Vote selection -->
+      <div id="vote-select" class="hidden" style="width:100%">
+        <h2 class="phase-title" style="font-size:1.2rem; margin-bottom:20px">
+          <span class="player-badge" id="vote-player-name-2">Player 1</span> — who is the imposter?
+        </h2>
+        <div class="btn-group" id="vote-buttons"></div>
+      </div>
+
+      <!-- Pass to next voter -->
+      <div id="vote-next" class="hidden" style="width:100%">
+        <div class="phase-icon">✅</div>
+        <h2 class="phase-title">Vote recorded!</h2>
+        <p class="phase-body" id="vote-next-message">Pass the phone to the next voter.</p>
+        <div class="spacer"></div>
+        <button class="btn btn-primary" id="btn-next-voter">Continue</button>
+      </div>
+    </div>
+
+    <!-- RESULTS SCREEN -->
+    <div id="screen-results" class="screen">
+      <div id="result-banner" class="result-banner">
+        <div class="result-outcome" id="result-outcome"></div>
+        <div class="result-detail" id="result-detail"></div>
+      </div>
+
+      <div class="result-stats">
+        <h3>Vote Breakdown</h3>
+        <div id="vote-breakdown"></div>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" id="btn-replay-same">Play Again with Same Terms</button>
+        <button class="btn btn-secondary" id="btn-new-game">New Game</button>
+      </div>
+    </div>
+
+    <footer>Imposter · One phone, one word, one liar.</footer>
+  </div>
+
+  <script>
+    // ─── State ───────────────────────────────────────────────────────────────
+    const state = {
+      playerCount: 4,
+      terms: [],
+      selectedTerm: '',
+      imposterPlayer: 1,       // 1-indexed
+      revealIndex: 0,          // 0-indexed, current player in reveal sequence
+      roleVisible: false,
+      votes: [],               // votes[i] = who player (i+1) voted for (1-indexed)
+      voteIndex: 0,            // 0-indexed, current voter
+      voteSubmitted: false,
+    };
+
+    // Persisted settings (terms + player count only)
+    const STORAGE_KEY = 'imposter_settings';
+
+    // ─── DOM refs ──────────────────────────────────────────────────────────────
+    const screens = {
+      start:       document.getElementById('screen-start'),
+      reveal:      document.getElementById('screen-reveal'),
+      discussion:  document.getElementById('screen-discussion'),
+      vote:        document.getElementById('screen-vote'),
+      results:     document.getElementById('screen-results'),
+    };
+
+    // ─── Helpers ─────────────────────────────────────────────────────────────────
+    function showScreen(name) {
+      Object.values(screens).forEach(s => s.classList.remove('active'));
+      screens[name].classList.add('active');
+    }
+
+    function parseTerms(raw) {
+      return raw
+        .split(/[,\n]+/)
+        .map(t => t.trim())
+        .filter(t => t.length > 0);
+    }
+
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function saveSettings() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          playerCount: state.playerCount,
+          terms: state.terms,
+        }));
+      } catch (_) { /* ignore */ }
+    }
+
+    function loadSettings() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const saved = JSON.parse(raw);
+        if (saved.playerCount) document.getElementById('player-count').value = saved.playerCount;
+        if (saved.terms && saved.terms.length) {
+          document.getElementById('custom-terms').value = saved.terms.join(', ');
+        }
+      } catch (_) { /* ignore */ }
+    }
+
+    function buildDots(containerId, total, current) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+      for (let i = 0; i < total; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'dot' + (i < current ? ' done' : '') + (i === current ? ' current' : '');
+        container.appendChild(dot);
+      }
+    }
+
+    // ─── Validation ──────────────────────────────────────────────────────────────
+    function validateStart() {
+      const errorEl = document.getElementById('start-error');
+      const countRaw = document.getElementById('player-count').value;
+      const count = parseInt(countRaw, 10);
+      const terms = parseTerms(document.getElementById('custom-terms').value);
+
+      if (!countRaw || isNaN(count) || count < 3) {
+        errorEl.textContent = 'You need at least 3 players to start.';
+        errorEl.classList.add('visible');
+        return null;
+      }
+
+      if (terms.length < 1) {
+        errorEl.textContent = 'Enter at least one custom term (comma or line separated).';
+        errorEl.classList.add('visible');
+        return null;
+      }
+
+      errorEl.classList.remove('visible');
+      return { count, terms };
+    }
+
+    // ─── Game setup ──────────────────────────────────────────────────────────────
+    function setupGame(count, terms) {
+      state.playerCount = count;
+      state.terms = terms;
+      state.selectedTerm = terms[randomInt(0, terms.length - 1)];
+      state.imposterPlayer = randomInt(1, count);
+      state.revealIndex = 0;
+      state.roleVisible = false;
+      state.votes = new Array(count).fill(null);
+      state.voteIndex = 0;
+      state.voteSubmitted = false;
+      saveSettings();
+    }
+
+    // ─── Reveal phase ────────────────────────────────────────────────────────────
+    function renderRevealPass() {
+      const playerNum = state.revealIndex + 1;
+      document.getElementById('reveal-player-name').textContent = `Player ${playerNum}`;
+      document.getElementById('reveal-pass').classList.remove('hidden');
+      document.getElementById('reveal-role').classList.add('hidden');
+      buildDots('reveal-dots', state.playerCount, state.revealIndex);
+    }
+
+    function showRole() {
+      const playerNum = state.revealIndex + 1;
+      const isImposter = playerNum === state.imposterPlayer;
+
+      document.getElementById('reveal-pass').classList.add('hidden');
+      document.getElementById('reveal-role').classList.remove('hidden');
+
+      document.getElementById('role-card-normal').classList.toggle('hidden', isImposter);
+      document.getElementById('role-card-imposter').classList.toggle('hidden', !isImposter);
+
+      if (!isImposter) {
+        document.getElementById('role-word').textContent = state.selectedTerm;
+      }
+
+      state.roleVisible = true;
+    }
+
+    function hideRole() {
+      state.roleVisible = false;
+      state.revealIndex++;
+
+      if (state.revealIndex >= state.playerCount) {
+        showScreen('discussion');
+        return;
+      }
+
+      renderRevealPass();
+    }
+
+    // ─── Voting phase ────────────────────────────────────────────────────────────
+    function renderVotePass() {
+      const playerNum = state.voteIndex + 1;
+      document.getElementById('vote-player-name').textContent = `Player ${playerNum}`;
+      document.getElementById('vote-pass').classList.remove('hidden');
+      document.getElementById('vote-select').classList.add('hidden');
+      document.getElementById('vote-next').classList.add('hidden');
+      buildDots('vote-dots', state.playerCount, state.voteIndex);
+    }
+
+    function showVoteSelect() {
+      const playerNum = state.voteIndex + 1;
+      document.getElementById('vote-player-name-2').textContent = `Player ${playerNum}`;
+      document.getElementById('vote-pass').classList.add('hidden');
+      document.getElementById('vote-select').classList.remove('hidden');
+
+      const container = document.getElementById('vote-buttons');
+      container.innerHTML = '';
+
+      for (let i = 1; i <= state.playerCount; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-vote';
+        btn.textContent = `Vote Player ${i}`;
+        btn.addEventListener('click', () => submitVote(i));
+        container.appendChild(btn);
+      }
+    }
+
+    function submitVote(votedFor) {
+      state.votes[state.voteIndex] = votedFor;
+      state.voteSubmitted = true;
+
+      document.getElementById('vote-select').classList.add('hidden');
+      document.getElementById('vote-next').classList.remove('hidden');
+
+      const remaining = state.playerCount - state.voteIndex - 1;
+      const msg = document.getElementById('vote-next-message');
+      if (remaining > 0) {
+        msg.textContent = `Pass the phone to Player ${state.voteIndex + 2} to vote.`;
+      } else {
+        msg.textContent = 'All votes are in. Tap Continue to see the results.';
+      }
+    }
+
+    function advanceVoter() {
+      state.voteIndex++;
+      state.voteSubmitted = false;
+
+      if (state.voteIndex >= state.playerCount) {
+        showResults();
+        return;
+      }
+
+      renderVotePass();
+    }
+
+    // ─── Results ─────────────────────────────────────────────────────────────────
+    function tallyVotes() {
+      const counts = new Array(state.playerCount + 1).fill(0);
+      state.votes.forEach(v => { if (v) counts[v]++; });
+      return counts;
+    }
+
+    function showResults() {
+      const counts = tallyVotes();
+
+      // Find max vote count and all players tied at max
+      const playerCounts = counts.slice(1); // index 0 unused
+      const maxVotes = Math.max(...playerCounts);
+      const topPlayers = playerCounts
+        .map((c, i) => ({ player: i + 1, count: c }))
+        .filter(p => p.count === maxVotes && maxVotes > 0);
+
+      const isTie = topPlayers.length > 1;
+      const topPlayer = topPlayers.length === 1 ? topPlayers[0].player : null;
+
+      const banner = document.getElementById('result-banner');
+      const outcome = document.getElementById('result-outcome');
+      const detail = document.getElementById('result-detail');
+
+      banner.className = 'result-banner';
+
+      if (isTie) {
+        // Tie: vote inconclusive, imposter survives
+        banner.classList.add('tie');
+        const names = topPlayers.map(p => `Player ${p.player}`).join(', ');
+        outcome.textContent = 'Vote Inconclusive!';
+        detail.innerHTML = `Tied for most votes: <strong>${names}</strong> (${maxVotes} vote${maxVotes !== 1 ? 's' : ''} each).<br><br>
+          The imposter was <strong>Player ${state.imposterPlayer}</strong>.<br>
+          With no clear winner, the imposter survives!`;
+      } else if (topPlayer === state.imposterPlayer) {
+        // Group wins
+        banner.classList.add('win');
+        outcome.textContent = 'The Group Wins!';
+        detail.innerHTML = `Player ${topPlayer} received the most votes (${maxVotes}) and was the imposter.<br>
+          The secret word was <strong>"${state.selectedTerm}"</strong>.`;
+      } else {
+        // Imposter wins
+        banner.classList.add('lose');
+        outcome.textContent = 'The Imposter Wins!';
+        detail.innerHTML = `Player ${topPlayer} received the most votes (${maxVotes}), but the real imposter was
+          <strong>Player ${state.imposterPlayer}</strong>.<br>
+          The secret word was <strong>"${state.selectedTerm}"</strong>.`;
+      }
+
+      // Vote breakdown
+      const breakdown = document.getElementById('vote-breakdown');
+      breakdown.innerHTML = '';
+      for (let i = 1; i <= state.playerCount; i++) {
+        const row = document.createElement('div');
+        row.className = 'vote-row' + (i === state.imposterPlayer ? ' imposter-row' : '');
+        row.innerHTML = `<span>Player ${i}${i === state.imposterPlayer ? ' 👀' : ''}</span>
+          <span class="vote-count">${counts[i]} vote${counts[i] !== 1 ? 's' : ''}</span>`;
+        breakdown.appendChild(row);
+      }
+
+      showScreen('results');
+    }
+
+    // ─── Replay ──────────────────────────────────────────────────────────────────
+    function replaySameTerms() {
+      setupGame(state.playerCount, state.terms);
+      renderRevealPass();
+      showScreen('reveal');
+    }
+
+    function newGame() {
+      document.getElementById('start-error').classList.remove('visible');
+      showScreen('start');
+    }
+
+    // ─── Event listeners ─────────────────────────────────────────────────────────
+    document.getElementById('btn-start').addEventListener('click', () => {
+      const valid = validateStart();
+      if (!valid) return;
+      setupGame(valid.count, valid.terms);
+      renderRevealPass();
+      showScreen('reveal');
+    });
+
+    document.getElementById('btn-reveal').addEventListener('click', showRole);
+    document.getElementById('btn-hide').addEventListener('click', hideRole);
+
+    document.getElementById('btn-to-vote').addEventListener('click', () => {
+      state.voteIndex = 0;
+      state.voteSubmitted = false;
+      renderVotePass();
+      showScreen('vote');
+    });
+
+    document.getElementById('btn-ready-vote').addEventListener('click', showVoteSelect);
+    document.getElementById('btn-next-voter').addEventListener('click', advanceVoter);
+
+    document.getElementById('btn-replay-same').addEventListener('click', replaySameTerms);
+    document.getElementById('btn-new-game').addEventListener('click', newGame);
+
+    // Restore last-used settings on load
+    loadSettings();
+  </script>
+</body>
+</html>
