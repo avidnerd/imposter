@@ -20,9 +20,8 @@ python3 -m http.server 8080
 1. Enter the number of players (minimum 3) and a list of custom terms.
 2. Tap **Start Game** — a random term and imposter are chosen.
 3. Pass the phone player by player. Each player taps **Reveal** to see their role, then **Hide** before passing it on.
-4. After everyone has seen their role, discuss and tap **Go to Vote**.
-5. Each player votes in secret by passing the phone around.
-6. See the results — did the group catch the imposter?
+4. After everyone has seen their role, discuss and vote in person — put the phone down!
+5. Tap **Play Again** or **New Game** when you're ready for another round.
 
 ## Replay
 

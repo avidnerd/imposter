@@ -217,31 +217,6 @@
       color: var(--text);
     }
 
-    .btn-danger {
-      background: var(--danger);
-      color: #fff;
-      box-shadow: 0 4px 20px var(--danger-glow);
-    }
-
-    .btn-vote {
-      background: var(--bg);
-      border: 1px solid var(--card-border);
-      color: var(--text);
-      padding: 16px 20px;
-      font-size: 1rem;
-    }
-
-    .btn-vote:hover {
-      border-color: var(--accent);
-      background: rgba(124, 92, 252, 0.1);
-    }
-
-    .btn-vote.selected {
-      border-color: var(--accent);
-      background: rgba(124, 92, 252, 0.2);
-      box-shadow: 0 0 0 3px var(--accent-glow);
-    }
-
     .btn-group {
       display: flex;
       flex-direction: column;
@@ -330,87 +305,6 @@
     .role-imposter-hint {
       color: var(--text-muted);
       font-size: 1rem;
-    }
-
-    /* Results */
-    .result-banner {
-      width: 100%;
-      border-radius: var(--radius);
-      padding: 28px 24px;
-      text-align: center;
-      margin-bottom: 20px;
-      animation: fadeIn 0.4s ease;
-    }
-
-    .result-banner.win {
-      background: rgba(61, 214, 140, 0.12);
-      border: 1px solid rgba(61, 214, 140, 0.4);
-    }
-
-    .result-banner.lose {
-      background: rgba(255, 77, 106, 0.12);
-      border: 1px solid rgba(255, 77, 106, 0.4);
-    }
-
-    .result-banner.tie {
-      background: rgba(255, 179, 71, 0.12);
-      border: 1px solid rgba(255, 179, 71, 0.4);
-    }
-
-    .result-outcome {
-      font-size: 1.5rem;
-      font-weight: 900;
-      margin-bottom: 8px;
-    }
-
-    .result-banner.win .result-outcome { color: var(--success); }
-    .result-banner.lose .result-outcome { color: var(--danger); }
-    .result-banner.tie .result-outcome { color: var(--warning); }
-
-    .result-detail {
-      color: var(--text-muted);
-      font-size: 0.95rem;
-      line-height: 1.6;
-    }
-
-    .result-stats {
-      width: 100%;
-      background: var(--card);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius);
-      padding: 20px;
-      margin-bottom: 24px;
-    }
-
-    .result-stats h3 {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-muted);
-      margin-bottom: 14px;
-    }
-
-    .vote-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--card-border);
-      font-size: 0.95rem;
-    }
-
-    .vote-row:last-child {
-      border-bottom: none;
-    }
-
-    .vote-count {
-      font-weight: 700;
-      color: var(--accent-hover);
-    }
-
-    .vote-row.imposter-row {
-      color: var(--danger);
-      font-weight: 600;
     }
 
     .progress-dots {
@@ -506,54 +400,9 @@
     <div id="screen-discussion" class="screen">
       <div class="phase-icon">💬</div>
       <h2 class="phase-title">Discussion Time</h2>
-      <p class="phase-body" id="discussion-body">Talk, ask questions, and figure out who the imposter is.</p>
+      <p class="phase-body" id="discussion-body">Everyone has seen their role. Discuss and vote in person to find the imposter.</p>
+      <p class="phase-body">Put the phone down — you've got this!</p>
       <div class="spacer"></div>
-      <button class="btn btn-primary" id="btn-to-vote">Go to Vote</button>
-    </div>
-
-    <!-- VOTING SCREEN -->
-    <div id="screen-vote" class="screen">
-      <div class="progress-dots" id="vote-dots"></div>
-
-      <!-- Pass phone to voter -->
-      <div id="vote-pass">
-        <div class="phase-icon">🗳️</div>
-        <h2 class="phase-title">Pass the phone to<br><span class="player-badge" id="vote-player-name">Player 1</span></h2>
-        <p class="phase-body">This player will cast their vote in secret.</p>
-        <div class="spacer"></div>
-        <button class="btn btn-primary" id="btn-ready-vote">Ready to Vote</button>
-      </div>
-
-      <!-- Vote selection -->
-      <div id="vote-select" class="hidden" style="width:100%">
-        <h2 class="phase-title" style="font-size:1.2rem; margin-bottom:20px">
-          <span class="player-badge" id="vote-player-name-2">Player 1</span> — <span id="vote-prompt">who is the imposter?</span>
-        </h2>
-        <div class="btn-group" id="vote-buttons"></div>
-      </div>
-
-      <!-- Pass to next voter -->
-      <div id="vote-next" class="hidden" style="width:100%">
-        <div class="phase-icon">✅</div>
-        <h2 class="phase-title">Vote recorded!</h2>
-        <p class="phase-body" id="vote-next-message">Pass the phone to the next voter.</p>
-        <div class="spacer"></div>
-        <button class="btn btn-primary" id="btn-next-voter">Continue</button>
-      </div>
-    </div>
-
-    <!-- RESULTS SCREEN -->
-    <div id="screen-results" class="screen">
-      <div id="result-banner" class="result-banner">
-        <div class="result-outcome" id="result-outcome"></div>
-        <div class="result-detail" id="result-detail"></div>
-      </div>
-
-      <div class="result-stats">
-        <h3>Vote Breakdown</h3>
-        <div id="vote-breakdown"></div>
-      </div>
-
       <div class="btn-group">
         <button class="btn btn-primary" id="btn-replay-same">Play Again with Same Terms</button>
         <button class="btn btn-secondary" id="btn-new-game">New Game</button>
@@ -573,9 +422,6 @@
       imposterPlayers: [],     // 1-indexed player numbers
       revealIndex: 0,          // 0-indexed, current player in reveal sequence
       roleVisible: false,
-      votes: [],               // votes[i] = who player (i+1) voted for (1-indexed)
-      voteIndex: 0,            // 0-indexed, current voter
-      voteSubmitted: false,
     };
 
     // Persisted settings (terms + player count only)
@@ -586,8 +432,6 @@
       start:       document.getElementById('screen-start'),
       reveal:      document.getElementById('screen-reveal'),
       discussion:  document.getElementById('screen-discussion'),
-      vote:        document.getElementById('screen-vote'),
-      results:     document.getElementById('screen-results'),
     };
 
     // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -605,10 +449,6 @@
 
     function randomInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
-    function formatPlayerList(players) {
-      return players.map(n => `Player ${n}`).join(', ');
     }
 
     function isImposter(playerNum) {
@@ -716,9 +556,6 @@
       state.imposterPlayers = pickImposters(count, imposterCount);
       state.revealIndex = 0;
       state.roleVisible = false;
-      state.votes = new Array(count).fill(null);
-      state.voteIndex = 0;
-      state.voteSubmitted = false;
       saveSettings();
     }
 
@@ -755,139 +592,13 @@
       if (state.revealIndex >= state.playerCount) {
         const plural = state.imposterCount > 1;
         document.getElementById('discussion-body').textContent = plural
-          ? 'Talk, ask questions, and figure out who the imposters are.'
-          : 'Talk, ask questions, and figure out who the imposter is.';
+          ? 'Everyone has seen their role. Discuss and vote in person to find the imposters.'
+          : 'Everyone has seen their role. Discuss and vote in person to find the imposter.';
         showScreen('discussion');
         return;
       }
 
       renderRevealPass();
-    }
-
-    // ─── Voting phase ────────────────────────────────────────────────────────────
-    function renderVotePass() {
-      const playerNum = state.voteIndex + 1;
-      document.getElementById('vote-player-name').textContent = `Player ${playerNum}`;
-      document.getElementById('vote-pass').classList.remove('hidden');
-      document.getElementById('vote-select').classList.add('hidden');
-      document.getElementById('vote-next').classList.add('hidden');
-      buildDots('vote-dots', state.playerCount, state.voteIndex);
-    }
-
-    function showVoteSelect() {
-      const playerNum = state.voteIndex + 1;
-      document.getElementById('vote-player-name-2').textContent = `Player ${playerNum}`;
-      document.getElementById('vote-prompt').textContent = state.imposterCount > 1
-        ? 'who is an imposter?'
-        : 'who is the imposter?';
-      document.getElementById('vote-pass').classList.add('hidden');
-      document.getElementById('vote-select').classList.remove('hidden');
-
-      const container = document.getElementById('vote-buttons');
-      container.innerHTML = '';
-
-      for (let i = 1; i <= state.playerCount; i++) {
-        const btn = document.createElement('button');
-        btn.className = 'btn btn-vote';
-        btn.textContent = `Vote Player ${i}`;
-        btn.addEventListener('click', () => submitVote(i));
-        container.appendChild(btn);
-      }
-    }
-
-    function submitVote(votedFor) {
-      state.votes[state.voteIndex] = votedFor;
-      state.voteSubmitted = true;
-
-      document.getElementById('vote-select').classList.add('hidden');
-      document.getElementById('vote-next').classList.remove('hidden');
-
-      const remaining = state.playerCount - state.voteIndex - 1;
-      const msg = document.getElementById('vote-next-message');
-      if (remaining > 0) {
-        msg.textContent = `Pass the phone to Player ${state.voteIndex + 2} to vote.`;
-      } else {
-        msg.textContent = 'All votes are in. Tap Continue to see the results.';
-      }
-    }
-
-    function advanceVoter() {
-      state.voteIndex++;
-      state.voteSubmitted = false;
-
-      if (state.voteIndex >= state.playerCount) {
-        showResults();
-        return;
-      }
-
-      renderVotePass();
-    }
-
-    // ─── Results ─────────────────────────────────────────────────────────────────
-    function tallyVotes() {
-      const counts = new Array(state.playerCount + 1).fill(0);
-      state.votes.forEach(v => { if (v) counts[v]++; });
-      return counts;
-    }
-
-    function showResults() {
-      const counts = tallyVotes();
-
-      // Find max vote count and all players tied at max
-      const playerCounts = counts.slice(1); // index 0 unused
-      const maxVotes = Math.max(...playerCounts);
-      const topPlayers = playerCounts
-        .map((c, i) => ({ player: i + 1, count: c }))
-        .filter(p => p.count === maxVotes && maxVotes > 0);
-
-      const isTie = topPlayers.length > 1;
-      const topPlayer = topPlayers.length === 1 ? topPlayers[0].player : null;
-
-      const banner = document.getElementById('result-banner');
-      const outcome = document.getElementById('result-outcome');
-      const detail = document.getElementById('result-detail');
-
-      banner.className = 'result-banner';
-
-      const imposterLabel = formatPlayerList(state.imposterPlayers);
-      const caughtImposter = topPlayer !== null && isImposter(topPlayer);
-
-      if (isTie) {
-        // Tie: vote inconclusive, imposters survive
-        banner.classList.add('tie');
-        const names = topPlayers.map(p => `Player ${p.player}`).join(', ');
-        outcome.textContent = 'Vote Inconclusive!';
-        detail.innerHTML = `Tied for most votes: <strong>${names}</strong> (${maxVotes} vote${maxVotes !== 1 ? 's' : ''} each).<br><br>
-          The imposter${state.imposterCount > 1 ? 's were' : ' was'} <strong>${imposterLabel}</strong>.<br>
-          With no clear winner, the imposter${state.imposterCount > 1 ? 's survive' : ' survives'}!`;
-      } else if (caughtImposter) {
-        // Group wins — sole top vote went to an imposter
-        banner.classList.add('win');
-        outcome.textContent = 'The Group Wins!';
-        detail.innerHTML = `Player ${topPlayer} received the most votes (${maxVotes}) and was an imposter.<br>
-          All imposters: <strong>${imposterLabel}</strong>.<br>
-          The secret word was <strong>"${state.selectedTerm}"</strong>.`;
-      } else {
-        // Imposters win
-        banner.classList.add('lose');
-        outcome.textContent = state.imposterCount > 1 ? 'The Imposters Win!' : 'The Imposter Wins!';
-        detail.innerHTML = `Player ${topPlayer} received the most votes (${maxVotes}), but the real imposter${state.imposterCount > 1 ? 's were' : ' was'}
-          <strong>${imposterLabel}</strong>.<br>
-          The secret word was <strong>"${state.selectedTerm}"</strong>.`;
-      }
-
-      // Vote breakdown
-      const breakdown = document.getElementById('vote-breakdown');
-      breakdown.innerHTML = '';
-      for (let i = 1; i <= state.playerCount; i++) {
-        const row = document.createElement('div');
-        row.className = 'vote-row' + (isImposter(i) ? ' imposter-row' : '');
-        row.innerHTML = `<span>Player ${i}${isImposter(i) ? ' 👀' : ''}</span>
-          <span class="vote-count">${counts[i]} vote${counts[i] !== 1 ? 's' : ''}</span>`;
-        breakdown.appendChild(row);
-      }
-
-      showScreen('results');
     }
 
     // ─── Replay ──────────────────────────────────────────────────────────────────
@@ -915,16 +626,6 @@
 
     document.getElementById('btn-reveal').addEventListener('click', showRole);
     document.getElementById('btn-hide').addEventListener('click', hideRole);
-
-    document.getElementById('btn-to-vote').addEventListener('click', () => {
-      state.voteIndex = 0;
-      state.voteSubmitted = false;
-      renderVotePass();
-      showScreen('vote');
-    });
-
-    document.getElementById('btn-ready-vote').addEventListener('click', showVoteSelect);
-    document.getElementById('btn-next-voter').addEventListener('click', advanceVoter);
 
     document.getElementById('btn-replay-same').addEventListener('click', replaySameTerms);
     document.getElementById('btn-new-game').addEventListener('click', newGame);
