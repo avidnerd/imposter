@@ -154,6 +154,12 @@
       text-align: center;
     }
 
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
     /* Error */
     .error {
       display: none;
@@ -447,9 +453,15 @@
       <p class="subtitle">Pass one phone around.<br>Find the player who doesn't know the word.</p>
 
       <div class="card">
-        <div class="field">
-          <label for="player-count">Number of Players</label>
-          <input type="number" id="player-count" min="3" max="20" value="4" inputmode="numeric">
+        <div class="field-row">
+          <div class="field">
+            <label for="player-count">Players</label>
+            <input type="number" id="player-count" min="3" max="20" value="4" inputmode="numeric">
+          </div>
+          <div class="field">
+            <label for="imposter-count">Imposters</label>
+            <input type="number" id="imposter-count" min="1" max="19" value="1" inputmode="numeric">
+          </div>
         </div>
 
         <div class="field">
@@ -494,7 +506,7 @@
     <div id="screen-discussion" class="screen">
       <div class="phase-icon">💬</div>
       <h2 class="phase-title">Discussion Time</h2>
-      <p class="phase-body">Talk, ask questions, and figure out who the imposter is.</p>
+      <p class="phase-body" id="discussion-body">Talk, ask questions, and figure out who the imposter is.</p>
       <div class="spacer"></div>
       <button class="btn btn-primary" id="btn-to-vote">Go to Vote</button>
     </div>
@@ -515,7 +527,7 @@
       <!-- Vote selection -->
       <div id="vote-select" class="hidden" style="width:100%">
         <h2 class="phase-title" style="font-size:1.2rem; margin-bottom:20px">
-          <span class="player-badge" id="vote-player-name-2">Player 1</span> — who is the imposter?
+          <span class="player-badge" id="vote-player-name-2">Player 1</span> — <span id="vote-prompt">who is the imposter?</span>
         </h2>
         <div class="btn-group" id="vote-buttons"></div>
       </div>
@@ -555,9 +567,10 @@
     // ─── State ───────────────────────────────────────────────────────────────
     const state = {
       playerCount: 4,
+      imposterCount: 1,
       terms: [],
       selectedTerm: '',
-      imposterPlayer: 1,       // 1-indexed
+      imposterPlayers: [],     // 1-indexed player numbers
       revealIndex: 0,          // 0-indexed, current player in reveal sequence
       roleVisible: false,
       votes: [],               // votes[i] = who player (i+1) voted for (1-indexed)
@@ -594,10 +607,40 @@
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
+    function formatPlayerList(players) {
+      return players.map(n => `Player ${n}`).join(', ');
+    }
+
+    function isImposter(playerNum) {
+      return state.imposterPlayers.includes(playerNum);
+    }
+
+    // Randomly pick N unique imposters from player numbers 1..playerCount
+    function pickImposters(playerCount, imposterCount) {
+      const pool = Array.from({ length: playerCount }, (_, i) => i + 1);
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = randomInt(0, i);
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+      return pool.slice(0, imposterCount).sort((a, b) => a - b);
+    }
+
+    function updateImposterMax() {
+      const count = parseInt(document.getElementById('player-count').value, 10);
+      const imposterInput = document.getElementById('imposter-count');
+      if (!isNaN(count) && count >= 3) {
+        imposterInput.max = count - 1;
+        if (parseInt(imposterInput.value, 10) > count - 1) {
+          imposterInput.value = count - 1;
+        }
+      }
+    }
+
     function saveSettings() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
           playerCount: state.playerCount,
+          imposterCount: state.imposterCount,
           terms: state.terms,
         }));
       } catch (_) { /* ignore */ }
@@ -609,9 +652,11 @@
         if (!raw) return;
         const saved = JSON.parse(raw);
         if (saved.playerCount) document.getElementById('player-count').value = saved.playerCount;
+        if (saved.imposterCount) document.getElementById('imposter-count').value = saved.imposterCount;
         if (saved.terms && saved.terms.length) {
           document.getElementById('custom-terms').value = saved.terms.join(', ');
         }
+        updateImposterMax();
       } catch (_) { /* ignore */ }
     }
 
@@ -629,11 +674,25 @@
     function validateStart() {
       const errorEl = document.getElementById('start-error');
       const countRaw = document.getElementById('player-count').value;
+      const imposterRaw = document.getElementById('imposter-count').value;
       const count = parseInt(countRaw, 10);
+      const imposterCount = parseInt(imposterRaw, 10);
       const terms = parseTerms(document.getElementById('custom-terms').value);
 
       if (!countRaw || isNaN(count) || count < 3) {
         errorEl.textContent = 'You need at least 3 players to start.';
+        errorEl.classList.add('visible');
+        return null;
+      }
+
+      if (!imposterRaw || isNaN(imposterCount) || imposterCount < 1) {
+        errorEl.textContent = 'You need at least 1 imposter.';
+        errorEl.classList.add('visible');
+        return null;
+      }
+
+      if (imposterCount >= count) {
+        errorEl.textContent = 'You need at least one player who knows the word — use fewer imposters.';
         errorEl.classList.add('visible');
         return null;
       }
@@ -645,15 +704,16 @@
       }
 
       errorEl.classList.remove('visible');
-      return { count, terms };
+      return { count, imposterCount, terms };
     }
 
     // ─── Game setup ──────────────────────────────────────────────────────────────
-    function setupGame(count, terms) {
+    function setupGame(count, terms, imposterCount) {
       state.playerCount = count;
+      state.imposterCount = imposterCount;
       state.terms = terms;
       state.selectedTerm = terms[randomInt(0, terms.length - 1)];
-      state.imposterPlayer = randomInt(1, count);
+      state.imposterPlayers = pickImposters(count, imposterCount);
       state.revealIndex = 0;
       state.roleVisible = false;
       state.votes = new Array(count).fill(null);
@@ -673,15 +733,15 @@
 
     function showRole() {
       const playerNum = state.revealIndex + 1;
-      const isImposter = playerNum === state.imposterPlayer;
+      const imposter = isImposter(playerNum);
 
       document.getElementById('reveal-pass').classList.add('hidden');
       document.getElementById('reveal-role').classList.remove('hidden');
 
-      document.getElementById('role-card-normal').classList.toggle('hidden', isImposter);
-      document.getElementById('role-card-imposter').classList.toggle('hidden', !isImposter);
+      document.getElementById('role-card-normal').classList.toggle('hidden', imposter);
+      document.getElementById('role-card-imposter').classList.toggle('hidden', !imposter);
 
-      if (!isImposter) {
+      if (!imposter) {
         document.getElementById('role-word').textContent = state.selectedTerm;
       }
 
@@ -693,6 +753,10 @@
       state.revealIndex++;
 
       if (state.revealIndex >= state.playerCount) {
+        const plural = state.imposterCount > 1;
+        document.getElementById('discussion-body').textContent = plural
+          ? 'Talk, ask questions, and figure out who the imposters are.'
+          : 'Talk, ask questions, and figure out who the imposter is.';
         showScreen('discussion');
         return;
       }
@@ -713,6 +777,9 @@
     function showVoteSelect() {
       const playerNum = state.voteIndex + 1;
       document.getElementById('vote-player-name-2').textContent = `Player ${playerNum}`;
+      document.getElementById('vote-prompt').textContent = state.imposterCount > 1
+        ? 'who is an imposter?'
+        : 'who is the imposter?';
       document.getElementById('vote-pass').classList.add('hidden');
       document.getElementById('vote-select').classList.remove('hidden');
 
@@ -782,26 +849,30 @@
 
       banner.className = 'result-banner';
 
+      const imposterLabel = formatPlayerList(state.imposterPlayers);
+      const caughtImposter = topPlayer !== null && isImposter(topPlayer);
+
       if (isTie) {
-        // Tie: vote inconclusive, imposter survives
+        // Tie: vote inconclusive, imposters survive
         banner.classList.add('tie');
         const names = topPlayers.map(p => `Player ${p.player}`).join(', ');
         outcome.textContent = 'Vote Inconclusive!';
         detail.innerHTML = `Tied for most votes: <strong>${names}</strong> (${maxVotes} vote${maxVotes !== 1 ? 's' : ''} each).<br><br>
-          The imposter was <strong>Player ${state.imposterPlayer}</strong>.<br>
-          With no clear winner, the imposter survives!`;
-      } else if (topPlayer === state.imposterPlayer) {
-        // Group wins
+          The imposter${state.imposterCount > 1 ? 's were' : ' was'} <strong>${imposterLabel}</strong>.<br>
+          With no clear winner, the imposter${state.imposterCount > 1 ? 's survive' : ' survives'}!`;
+      } else if (caughtImposter) {
+        // Group wins — sole top vote went to an imposter
         banner.classList.add('win');
         outcome.textContent = 'The Group Wins!';
-        detail.innerHTML = `Player ${topPlayer} received the most votes (${maxVotes}) and was the imposter.<br>
+        detail.innerHTML = `Player ${topPlayer} received the most votes (${maxVotes}) and was an imposter.<br>
+          All imposters: <strong>${imposterLabel}</strong>.<br>
           The secret word was <strong>"${state.selectedTerm}"</strong>.`;
       } else {
-        // Imposter wins
+        // Imposters win
         banner.classList.add('lose');
-        outcome.textContent = 'The Imposter Wins!';
-        detail.innerHTML = `Player ${topPlayer} received the most votes (${maxVotes}), but the real imposter was
-          <strong>Player ${state.imposterPlayer}</strong>.<br>
+        outcome.textContent = state.imposterCount > 1 ? 'The Imposters Win!' : 'The Imposter Wins!';
+        detail.innerHTML = `Player ${topPlayer} received the most votes (${maxVotes}), but the real imposter${state.imposterCount > 1 ? 's were' : ' was'}
+          <strong>${imposterLabel}</strong>.<br>
           The secret word was <strong>"${state.selectedTerm}"</strong>.`;
       }
 
@@ -810,8 +881,8 @@
       breakdown.innerHTML = '';
       for (let i = 1; i <= state.playerCount; i++) {
         const row = document.createElement('div');
-        row.className = 'vote-row' + (i === state.imposterPlayer ? ' imposter-row' : '');
-        row.innerHTML = `<span>Player ${i}${i === state.imposterPlayer ? ' 👀' : ''}</span>
+        row.className = 'vote-row' + (isImposter(i) ? ' imposter-row' : '');
+        row.innerHTML = `<span>Player ${i}${isImposter(i) ? ' 👀' : ''}</span>
           <span class="vote-count">${counts[i]} vote${counts[i] !== 1 ? 's' : ''}</span>`;
         breakdown.appendChild(row);
       }
@@ -821,7 +892,7 @@
 
     // ─── Replay ──────────────────────────────────────────────────────────────────
     function replaySameTerms() {
-      setupGame(state.playerCount, state.terms);
+      setupGame(state.playerCount, state.terms, state.imposterCount);
       renderRevealPass();
       showScreen('reveal');
     }
@@ -835,10 +906,12 @@
     document.getElementById('btn-start').addEventListener('click', () => {
       const valid = validateStart();
       if (!valid) return;
-      setupGame(valid.count, valid.terms);
+      setupGame(valid.count, valid.terms, valid.imposterCount);
       renderRevealPass();
       showScreen('reveal');
     });
+
+    document.getElementById('player-count').addEventListener('input', updateImposterMax);
 
     document.getElementById('btn-reveal').addEventListener('click', showRole);
     document.getElementById('btn-hide').addEventListener('click', hideRole);
@@ -857,6 +930,7 @@
     document.getElementById('btn-new-game').addEventListener('click', newGame);
 
     // Restore last-used settings on load
+    updateImposterMax();
     loadSettings();
   </script>
 </body>
